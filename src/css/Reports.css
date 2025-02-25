@@ -1,0 +1,248 @@
+/* Reports.css */
+.reports-container {
+    padding: 20px;
+    width: 100%;
+    background: white;
+}
+
+/* Header Section */
+.reports-header {
+    margin-bottom: 24px;
+}
+
+.header-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.date-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-filter select {
+    border: none;
+    padding: 8px;
+    font-size: 14px;
+    color: #333;
+    background: #f8f9fa;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.export-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #ff4d8f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: #ff3881;
+}
+
+/* Metrics Overview */
+.metrics-overview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.metric-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.metric-icon.revenue { background: #ff4d8f; }
+.metric-icon.bookings { background: #6c5dd3; }
+.metric-icon.rating { background: #ffb74d; }
+.metric-icon.completion { background: #4ce1b6; }
+
+.metric-info h3 {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.metric-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.metric-trend {
+    font-size: 13px;
+}
+
+.metric-trend.positive { color: #2ecc71; }
+.metric-trend.negative { color: #e74c3c; }
+
+/* Charts Section */
+.charts-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.chart-container h3 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 16px;
+}
+
+.chart-content {
+    height: 300px;
+}
+
+/* Services Performance */
+.services-performance {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.services-performance h3 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 16px;
+}
+
+.service-stats {
+    display: grid;
+    gap: 15px;
+}
+
+.service-stat-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.service-details h4 {
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.stat-row {
+    display: flex;
+    gap: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.growth-indicator {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.growth-indicator.positive {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+}
+
+.growth-indicator.negative {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .metrics-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .reports-container {
+        padding: 15px;
+    }
+
+    .header-filters {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .metrics-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .date-filter {
+        width: 100%;
+    }
+
+    .date-filter select {
+        width: 100%;
+    }
+
+    .export-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .stat-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.metric-card, .chart-container, .service-stat-card {
+    animation: fadeIn 0.3s ease-out;
+}

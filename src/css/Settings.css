@@ -1,0 +1,229 @@
+/* Settings.css */
+.settings-container {
+    padding: 24px;
+    width: 100%;
+    background: white;
+}
+
+.settings-header {
+    margin-bottom: 32px;
+}
+
+.settings-header h1 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.settings-header p {
+    color: #7f8c8d;
+    font-size: 15px;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.settings-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-header h2 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.card-icon {
+    width: 24px;
+    height: 24px;
+    color: #ff4d8f;
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #ff4d8f;
+}
+
+.save-btn {
+    background: #ff4d8f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+    background: #ff3881;
+    transform: translateY(-1px);
+}
+
+.toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.toggle-group:last-child {
+    border-bottom: none;
+}
+
+.toggle-label {
+    flex: 1;
+}
+
+.toggle-label span {
+    display: block;
+    color: #2c3e50;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.toggle-label p {
+    color: #7f8c8d;
+    font-size: 13px;
+    margin: 0;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #95a5a6;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.toggle-btn.active {
+    color: #ff4d8f;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 16px;
+    }
+
+    .card-content {
+        padding: 16px;
+    }
+
+    .toggle-group {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .toggle-btn {
+        align-self: flex-end;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.settings-card {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Form Focus Effects */
+.form-group input:focus {
+    box-shadow: 0 0 0 2px rgba(255, 77, 143, 0.1);
+}
+
+/* Hover Effects */
+.settings-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.save-btn:active {
+    transform: translateY(1px);
+}
+
+/* Loading State */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

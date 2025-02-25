@@ -1,0 +1,132 @@
+AdminDashboard.css
+
+body {
+    margin: 0;
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Clean and modern font */
+    background-color: #f0f4f8; /* Light background for the body */
+  }
+  
+  .dashboard-container {
+    max-width: 1200px; /* Maintain a wide layout */
+    margin: 20px auto; /* Center the container with margin */
+    padding: 20px; /* Padding for the container */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    background-color: #ffffff; /* White background for the dashboard */
+  }
+  
+  .dashboard-header {
+    text-align: center;
+    margin-bottom: 40px; /* Space below the header */
+  }
+  
+  .dashboard-header h1 {
+    font-size: 2.2rem; /* Responsive title size */
+    color: #2c3e50; /* Dark blue-gray for readability */
+    margin: 0; /* Remove margin */
+  }
+  
+  .dashboard-header p {
+    font-size: 1.1rem; /* Subtitle size */
+    color: #34495e; /* Medium gray for the subtitle */
+    margin-top: 5px; /* Space above the subtitle */
+  }
+  
+  .dashboard-nav {
+    background-color: #2980b9; /* Vibrant blue for the nav */
+    border-radius: 8px; /* Rounded corners */
+    margin-bottom: 30px; /* Space below the nav */
+  }
+  
+  .dashboard-nav ul {
+    list-style: none; /* Remove bullet points */
+    padding: 0; /* Remove padding */
+    display: flex; /* Flexbox for horizontal layout */
+    justify-content: center; /* Center the items */
+    flex-wrap: wrap; /* Wrap items on smaller screens */
+  }
+  
+  .dashboard-nav li {
+    margin: 0 15px; /* Space between nav items */
+  }
+  
+  .dashboard-nav a {
+    color: white; /* White text color */
+    text-decoration: none; /* Remove underline */
+    font-size: 1rem; /* Font size */
+    padding: 12px 25px; /* Padding around links */
+    border-radius: 5px; /* Rounded corners for links */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transition */
+    display: inline-block; /* Ensure padding is applied correctly */
+  }
+  
+  .dashboard-nav a:hover {
+    background-color: #1f6392; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift effect on hover */
+  }
+  
+  .form-container {
+    background-color: #ecf0f1; /* Light gray for the form background */
+    padding: 30px; /* Padding for the form */
+    border-radius: 10px; /* Match the container's corners */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Shadow for form depth */
+  }
+  
+  .form-container h2 {
+    margin-bottom: 20px; /* Space below form title */
+    color: #2c3e50; /* Dark blue-gray for form title */
+  }
+  
+  .form-container input,
+  .form-container select,
+  .form-container textarea {
+    width: 100%; /* Full width for input fields */
+    padding: 12px; /* Padding for input fields */
+    margin-bottom: 20px; /* Space below input fields */
+    border: 1px solid #bdc3c7; /* Light border color */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 1rem; /* Font size */
+  }
+  
+  .form-container button {
+    background-color: #27ae60; /* Green button color */
+    color: white; /* White text for button */
+    border: none; /* No border */
+    padding: 12px 20px; /* Padding for button */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 1rem; /* Font size */
+    cursor: pointer; /* Pointer cursor for button */
+    transition: background-color 0.3s; /* Smooth transition */
+    width: 100%; /* Full width for button */
+  }
+  
+  .form-container button:hover {
+    background-color: #219653; /* Darker green on hover */
+  }
+  
+  /* Media Query for Responsive Design */
+  @media (max-width: 768px) {
+    .dashboard-header h1 {
+      font-size: 2rem; /* Smaller title size on mobile */
+    }
+  
+    .dashboard-header p {
+      font-size: 1rem; /* Smaller subtitle size on mobile */
+    }
+  
+    .dashboard-nav a {
+      padding: 10px 15px; /* Adjust padding for smaller screens */
+    }
+  
+    .form-container input,
+    .form-container select,
+    .form-container textarea,
+    .form-container button {
+      padding: 10px; /* Adjust padding for smaller screens */
+    }
+  
+    .form-container {
+      padding: 20px; /* Reduce padding on mobile */
+    }
+  }
+  
