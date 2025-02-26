@@ -1,53 +1,91 @@
 // Verification.js
-import React, { useState } from 'react';
-import { 
-  FaCheck, 
-  FaTimes, 
+import React, { useEffect, useState } from "react";
+import {
+  FaCheck,
+  FaTimes,
   FaSearch,
   FaUserTie,
   FaBuilding,
   FaToolbox,
   FaEnvelope,
   FaPhone,
-  FaFileAlt
-} from 'react-icons/fa';
-import '../css/Verification.css';
+  FaFileAlt,
+} from "react-icons/fa";
+import "../css/Verification.css";
+import { all, loadingProcess, update } from "../firebase/helper";
+import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
 
 const Verification = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('pending');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Pending");
 
-  const [verifications, setVerifications] = useState([
-    {
-      id: 1,
-      providerName: "John Smith",
-      businessName: "Smith's Professional Cleaning",
-      serviceType: "House Cleaning",
-      submissionDate: "2024-01-28",
-      documents: ["Business Permit", "Government ID", "Insurance Certificate"],
-      status: "pending",
-      email: "john.smith@email.com",
-      phone: "+1 234-567-8900",
-      experience: "5 years",
-      rating: 4.8
-    },
-    // Add more verifications as needed
-  ]);
+  const [verifications, setVerifications] = useState([]);
+  const [filteredVerifications, setFilteredVerifications] = useState([]);
 
-  const handleApprove = (id) => {
-    setVerifications(prevVerifications =>
-      prevVerifications.map(verification =>
-        verification.id === id ? { ...verification, status: 'approved' } : verification
-      )
+  useEffect(() => {
+    loadingProcess(refresh);
+  });
+
+  const refresh = async () => {
+    const snap = await all("toVerifyProviders");
+    let temp = [];
+    setVerifications(
+      snap.docs.map((doc) => {
+        const data = doc.data();
+        const val = {
+          id: doc.id,
+          ...data,
+          sentAt: timestampToStringConverter(data.sentAt),
+        };
+        if (data.status == "Pending") temp.push(val);
+        return val;
+      })
     );
   };
 
-  const handleReject = (id) => {
-    setVerifications(prevVerifications =>
-      prevVerifications.map(verification =>
-        verification.id === id ? { ...verification, status: 'rejected' } : verification
-      )
+  useEffect(() => {
+    const search = searchTerm.trim().toLowerCase();
+    console.log("sadlfjsdfj");
+
+    setFilteredVerifications(
+      filterStatus == "All" && search == ""
+        ? verifications
+        : verifications.filter((item) => {
+            if (
+              search != "" &&
+              !item.name.toLowerCase().includes(search) &&
+              !item.email.toLowerCase().includes(search)
+            )
+              return false;
+            if (filterStatus != "All" && item.status != filterStatus)
+              return false;
+            return true;
+          })
     );
+  }, [filterStatus, searchTerm]);
+
+  const handleApprove = (id) => {
+    loadingProcess(async () => {
+      await update("toVerifyProviders", id, {
+        status: "Approved",
+      });
+      await update("users", id, {
+        verified: true,
+      });
+      await refresh();
+    });
+  };
+
+  const handleReject = (id) => {
+    loadingProcess(async () => {
+      await update("toVerifyProviders", id, {
+        status: "Rejected",
+      });
+      await update("users", id, {
+        verified: false,
+      });
+      await refresh();
+    });
   };
 
   return (
@@ -72,26 +110,31 @@ const Verification = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="status-filter"
           >
-            <option value="all">All Applications</option>
-            <option value="pending">Pending Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
+            <option value="All">All Applications</option>
+            <option value="Pending">Pending Review</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
           </select>
         </div>
       </div>
 
       <div className="verifications-grid">
-        {verifications.map(verification => (
-          <div key={verification.id} className={`verification-card ${verification.status}`}>
+        {filteredVerifications.map((verification) => (
+          <div
+            key={verification.id}
+            className={`verification-card ${verification.status}`}
+          >
             <div className="card-header">
               <div className="provider-info">
                 <FaUserTie className="provider-icon" />
                 <div>
-                  <h3>{verification.providerName}</h3>
-                  <span className="experience">{verification.experience} Experience</span>
+                  <h3>{verification.name}</h3>
+                  <span className="experience">1 Experience</span>
                 </div>
               </div>
-              <span className={`status-badge ${verification.status}`}>
+              <span
+                className={`status-badge ${verification.status.toLowerCase()}`}
+              >
                 {verification.status}
               </span>
             </div>
@@ -102,14 +145,14 @@ const Verification = () => {
                   <FaBuilding className="info-icon" />
                   <div>
                     <label>Business</label>
-                    <p>{verification.businessName}</p>
+                    <p>{verification.name}</p>
                   </div>
                 </div>
                 <div className="info-item">
                   <FaToolbox className="info-icon" />
                   <div>
                     <label>Service</label>
-                    <p>{verification.serviceType}</p>
+                    <p>{verification.service}</p>
                   </div>
                 </div>
               </div>
@@ -126,7 +169,7 @@ const Verification = () => {
                   <FaPhone className="info-icon" />
                   <div>
                     <label>Phone</label>
-                    <p>{verification.phone}</p>
+                    <p>{verification.phoneNumber}</p>
                   </div>
                 </div>
               </div>
@@ -136,7 +179,11 @@ const Verification = () => {
                   <FaFileAlt /> Submitted Documents
                 </label>
                 <div className="document-list">
-                  {verification.documents.map((doc, index) => (
+                  {[
+                    "Business Permit",
+                    "Government ID",
+                    "Insurance Certificate",
+                  ].map((doc, index) => (
                     <span key={index} className="document-tag">
                       {doc}
                     </span>
@@ -145,15 +192,15 @@ const Verification = () => {
               </div>
             </div>
 
-            {verification.status === 'pending' && (
+            {verification.status === "Pending" && (
               <div className="card-actions">
-                <button 
+                <button
                   className="approve-btn"
                   onClick={() => handleApprove(verification.id)}
                 >
                   <FaCheck /> Approve
                 </button>
-                <button 
+                <button
                   className="reject-btn"
                   onClick={() => handleReject(verification.id)}
                 >

@@ -124,6 +124,19 @@
   object-fit: cover;
 }
 
+.chat-name {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  background-color: #e67f12;
+  color: white;
+  font-size: x-large;
+  font-weight: 600;
+}
+
 .status-indicator {
   position: absolute;
   bottom: 2px;
