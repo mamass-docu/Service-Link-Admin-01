@@ -1,6 +1,12 @@
 // pages/Messages.js
 import React, { useEffect, useRef, useState } from "react";
-import { FaSearch, FaPaperPlane, FaEllipsisV, FaFilter } from "react-icons/fa";
+import {
+  FaSearch,
+  FaPaperPlane,
+  FaEllipsisV,
+  FaFilter,
+  FaImage,
+} from "react-icons/fa";
 import "../css/Messages.css";
 import {
   collection,
@@ -16,6 +22,7 @@ import { timestampToStringConverter } from "../helpers/TimestampToStringConverte
 import { useDispatch, useSelector } from "react-redux";
 import Spinner from "../components/Spinner";
 import { setSpecificLoading } from "../state/globalsSlice";
+import { uploadImage } from "../helpers/cloudinary";
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -25,6 +32,9 @@ const Messages = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [supportChats, setSupportChats] = useState({});
   const [filteredChats, setFilteredChats] = useState([]);
+  const [isSendingImage, setIsSendingImage] = useState(false);
+
+  const inputImageRef = useRef(null);
 
   const lastMessageRef = useRef(null);
   // Sample service providers data
@@ -67,6 +77,7 @@ const Messages = () => {
         const val = {
           id: item.id,
           message: snapData.message,
+          image: snapData.image,
           isUser: snapData.isUser,
           sentAt: timestampToStringConverter(snapData.sentAt),
         };
@@ -142,6 +153,40 @@ const Messages = () => {
         sentAt: serverTimestamp(),
       });
     });
+  };
+
+  const onClickSelectImage = () => {
+    if (!inputImageRef.current) return;
+
+    inputImageRef.current.click();
+  };
+
+  const onSendImage = async (e) => {
+    setIsSendingImage(true);
+    try {
+      const imageUrl = await uploadImage(
+        e.target.files[0]
+        // `image_${Date.now()}`
+      );
+      if (!imageUrl) {
+        alert("Unable to save image!!!");
+        return;
+      }
+
+      await add("supportChats", {
+        message: "Sent a image",
+        image: imageUrl,
+        isUser: false,
+        sentAt: serverTimestamp(),
+        senderId: selectedChat.senderId,
+      });
+    } catch (e) {
+      console.log(e, "error sending image");
+
+      alert("Error sending image!!!");
+    } finally {
+      setIsSendingImage(false);
+    }
   };
 
   useEffect(() => {
@@ -322,22 +367,47 @@ const Messages = () => {
                     style={{
                       padding: 12,
                       fontSize: 12,
-                      // paddingRight: 10,
-                      // paddingLeft: 10,
-                      // paddingTop: 5,
-                      // paddingBottom: 5,
                       borderRadius: 20,
                       ...getMessageStyle(item.isUser),
                     }}
                   >
-                    {item.message}
+                    {item.image ? (
+                      <img
+                        style={{
+                          width: 100,
+                          // height: 70,
+                          aspectRatio: 1,
+                        }}
+                        src={item.image}
+                      />
+                    ) : (
+                      <div>{item.message}</div>
+                    )}
                   </div>
                 </div>
               ))}
               <div ref={lastMessageRef} />
             </div>
 
-            <form className="message-input" onSubmit={handleSendMessage}>
+            <div className="message-input">
+              <input
+                type="file"
+                ref={inputImageRef}
+                onChange={onSendImage}
+                style={{ display: "none" }}
+                accept="image/*"
+              />
+              {isSendingImage ? (
+                <Spinner size={"20px"} />
+              ) : (
+                <button
+                  onClick={onClickSelectImage}
+                  type="button"
+                  className="send-button"
+                >
+                  <FaImage />
+                </button>
+              )}
               <input
                 type="text"
                 placeholder="Type your message..."
@@ -347,11 +417,15 @@ const Messages = () => {
               {isLoading ? (
                 <Spinner size={"20px"} />
               ) : (
-                <button type="submit" className="send-button">
+                <button
+                  onClick={handleSendMessage}
+                  type="button"
+                  className="send-button"
+                >
                   <FaPaperPlane />
                 </button>
               )}
-            </form>
+            </div>
           </>
         ) : (
           <div className="no-chat-selected">

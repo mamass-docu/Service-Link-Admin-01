@@ -12,7 +12,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import "../css/Verification.css";
-import { all, loadingProcess, update } from "../firebase/helper";
+import { all, find, loadingProcess, update } from "../firebase/helper";
 import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
 
 const Verification = () => {
@@ -24,29 +24,44 @@ const Verification = () => {
 
   useEffect(() => {
     loadingProcess(refresh);
-  });
+  }, []);
 
   const refresh = async () => {
     const snap = await all("toVerifyProviders");
     let temp = [];
-    setVerifications(
-      snap.docs.map((doc) => {
-        const data = doc.data();
-        const val = {
-          id: doc.id,
-          ...data,
-          sentAt: timestampToStringConverter(data.sentAt),
-        };
-        if (data.status == "Pending") temp.push(val);
-        return val;
-      })
-    );
+    for (let i in snap.docs) {
+      const doc = snap.docs[i];
+      const data = doc.data();
+      const docuSnap = await find("providerDocuments", doc.id);
+
+      const val = {
+        id: doc.id,
+        ...data,
+        documents: docuSnap.data(),
+        sentAt: timestampToStringConverter(data.sentAt),
+      };
+      temp.push(val);
+    }
+    setVerifications(temp);
+
+    // setVerifications(
+    //   snap.docs.map(async (doc) => {
+    //     const data = doc.data();
+    //     const docuSnap = await find("providerDocuments", doc.id);
+    //     const val = {
+    //       id: doc.id,
+    //       ...data,
+    //       documents: docuSnap.data(),
+    //       sentAt: timestampToStringConverter(data.sentAt),
+    //     };
+    //     if (data.status == "Pending") temp.push(val);
+    //     return val;
+    //   })
+    // );
   };
 
   useEffect(() => {
     const search = searchTerm.trim().toLowerCase();
-    console.log("sadlfjsdfj");
-
     setFilteredVerifications(
       filterStatus == "All" && search == ""
         ? verifications
@@ -62,7 +77,7 @@ const Verification = () => {
             return true;
           })
     );
-  }, [filterStatus, searchTerm]);
+  }, [filterStatus, searchTerm, verifications]);
 
   const handleApprove = (id) => {
     loadingProcess(async () => {
@@ -179,15 +194,48 @@ const Verification = () => {
                   <FaFileAlt /> Submitted Documents
                 </label>
                 <div className="document-list">
-                  {[
+                  {verification.documents.businessPermit ? (
+                    <a
+                      href={verification.documents.businessPermit}
+                      target="_blank"
+                      className="document-tag"
+                    >
+                      Business Permit
+                    </a>
+                  ) : null}
+                  {verification.documents.govId ? (
+                    <a
+                      href={verification.documents.govId}
+                      target="_blank"
+                      className="document-tag"
+                    >
+                      Government ID
+                    </a>
+                  ) : null}
+                  {verification.documents.proofOfIncome ? (
+                    <a
+                      href={verification.documents.proofOfIncome}
+                      target="_blank"
+                      className="document-tag"
+                    >
+                      Proof of Income
+                    </a>
+                  ) : null}
+                  {verification.documents.certification ? (
+                    <a
+                      href={verification.documents.certification}
+                      target="_blank"
+                      className="document-tag"
+                    >
+                      Certification
+                    </a>
+                  ) : null}
+                  {/* {[
                     "Business Permit",
                     "Government ID",
                     "Insurance Certificate",
                   ].map((doc, index) => (
-                    <span key={index} className="document-tag">
-                      {doc}
-                    </span>
-                  ))}
+                  ))} */}
                 </div>
               </div>
             </div>
