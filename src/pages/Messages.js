@@ -19,6 +19,7 @@ import { setSpecificLoading } from "../state/globalsSlice";
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(null);
+  const selectedId = useRef(null);
   const [message, setMessage] = useState("");
   const [filterProvider, setFilterProvider] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,14 +78,10 @@ const Messages = () => {
         // temp[snapData.senderId].chats = c[snapData.senderId];
       });
 
-
-      console.log(selectedChat, "selected chat value");
-      
-      if (selectedChat) {
-        console.log(c[selectedChat.senderId], "selectedChat");
-        const chatValue = c[selectedChat.senderId]
+      if (selectedId.current) {
+        const chatValue = c[selectedId.current];
         if (chatValue)
-          setSelectedChat({...selectedChat, chats: chatValue})
+          setSelectedChat({ ...users[selectedId.current], chats: chatValue });
         else setSelectedChat(null);
       }
 
@@ -97,9 +94,6 @@ const Messages = () => {
       }
 
       if (unsubsActive) {
-        console.log("nasa loob");
-
-        console.log(temp);
         setSupportChats(temp);
         refresh(temp);
         return;
@@ -121,7 +115,7 @@ const Messages = () => {
 
           if (!chatData) return;
 
-          temp[dc.id] = {...userData, chats: chatData.chats};
+          temp[dc.id] = { ...userData, chats: chatData.chats };
         });
 
         setSupportChats(temp);
@@ -149,10 +143,6 @@ const Messages = () => {
       });
     });
   };
-
-  useEffect(()=>{
-
-  }, [selectedChat])
 
   useEffect(() => {
     refresh(supportChats);
@@ -188,9 +178,9 @@ const Messages = () => {
   // };
 
   const onSelectChat = (chat) => {
-    console.log(chat, "selected chat change");
-    setSelectedChat(chat)
-  }
+    selectedId.current = chat.senderId;
+    setSelectedChat(chat);
+  };
 
   const getMessageStyle = (isUser) =>
     isUser
@@ -289,7 +279,7 @@ const Messages = () => {
       </div>
 
       <div className="chat-area">
-        {selectedChat ? (
+        {selectedId && selectedChat ? (
           <>
             <div className="chat-header">
               <div className="chat-user-info">

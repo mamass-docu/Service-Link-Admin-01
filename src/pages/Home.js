@@ -1,7 +1,7 @@
 // pages/Home.js
-import React from 'react';
-import { FaDollarSign, FaEye, FaChartLine, FaChartBar } from 'react-icons/fa';
-import '../css/Home.css';
+import React from "react";
+import { FaDollarSign, FaEye, FaChartLine, FaChartBar } from "react-icons/fa";
+import "../css/Home.css";
 
 const Home = () => {
   return (
@@ -22,7 +22,7 @@ const Home = () => {
         <div className="earnings-section">
           <div className="earnings-card">
             <h3>Current Month Earnings</h3>
-            <div className="amount">$6,468.96</div>
+            <div className="amount">₱6,468.96</div>
             <div className="chart-area">
               {/* Add your chart component here */}
             </div>
@@ -57,7 +57,7 @@ const Home = () => {
             </div>
             <div className="stat-info">
               <h4>Revenue Status</h4>
-              <div className="value">$500</div>
+              <div className="value">₱500</div>
             </div>
           </div>
 
@@ -87,7 +87,7 @@ const Home = () => {
             </div>
             <div className="stat-info">
               <h4>Unique Visits</h4>
-              <div className="value">$800</div>
+              <div className="value">₱800</div>
             </div>
           </div>
         </div>
@@ -124,8 +124,10 @@ const Home = () => {
                   <td>#4455</td>
                   <td>Candy Shop</td>
                   <td>Russia</td>
-                  <td>$524</td>
-                  <td><span className="status pending">Pending</span></td>
+                  <td>₱524</td>
+                  <td>
+                    <span className="status pending">Pending</span>
+                  </td>
                 </tr>
                 {/* Add more order rows */}
               </tbody>

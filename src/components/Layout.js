@@ -88,14 +88,14 @@ const Layout = () => {
           >
             <FaTools /> <span>Services</span>
           </Link>
-          <Link
+          {/* <Link
             to="/admin/reports"
             className={`nav-item ${
               location.pathname === "/admin/reports" ? "active" : ""
             }`}
           >
             <FaChartBar /> <span>Reports</span>
-          </Link>
+          </Link> */}
           <Link
             to="/admin/verification"
             className={`nav-item ${

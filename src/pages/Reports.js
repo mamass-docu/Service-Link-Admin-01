@@ -41,30 +41,30 @@ const Reports = () => {
   const [dateRange, setDateRange] = useState("This Month");
 
   // Chart Data
-  const revenueData = {
+  const [revenueData, setRevenueData] = useState({
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
     datasets: [
       {
         label: "Revenue",
-        data: [30000, 35000, 25000, 45000, 40000, 50000],
+        data: [0, 0, 0, 0, 0, 0],
         borderColor: "#ff4d8f",
         backgroundColor: "rgba(255, 77, 143, 0.1)",
         tension: 0.4,
         fill: true,
       },
     ],
-  };
+  });
 
-  const [topPerformingServices, setTopPerformingServices] = useState({})
-  const [totalBookings, setTotalBookings] = useState(0)
-  const [totalRevenue, setTotalRevenue] = useState(0)
+  const [topPerformingServices, setTopPerformingServices] = useState({});
+  const [totalBookings, setTotalBookings] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
   const [bookingsData, setBookingsData] = useState({
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
       {
         label: "Bookings",
-        data: [0,0,0,0,0,0,0],
+        data: [0, 0, 0, 0, 0, 0, 0],
         backgroundColor: "#6c5dd3",
       },
     ],
@@ -73,15 +73,17 @@ const Reports = () => {
   const getBookings = () => {
     loadingProcess(async () => {
       const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDayOfMonth = new Date(
-        now.getFullYear(),
-        now.getMonth() + 1,
-        0,
-        23,
-        59,
-        59
-      );
+      // const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      // const lastDayOfMonth = new Date(
+      //   now.getFullYear(),
+      //   now.getMonth() + 1,
+      //   0,
+      //   23,
+      //   59,
+      //   59
+      // );
+      const currentMonth = now.getMonth();
+
       const currentDay = now.getDay();
 
       // Calculate the start of the week (Sunday)
@@ -105,6 +107,7 @@ const Reports = () => {
       let totalB = 0;
       let topServices = {};
       let weeklyBookings = [0, 0, 0, 0, 0, 0, 0];
+      let monthly = [0, 0, 0, 0, 0, 0];
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.status == "Declined") return;
@@ -113,7 +116,7 @@ const Reports = () => {
         totalB++;
 
         const createdAt = data.createdAt.toDate();
-        if (createdAt >= firstDayOfMonth && createdAt <= lastDayOfMonth) {
+        if (createdAt.getMonth() == currentMonth) {
           console.log("done");
           const d = topServices[data.service];
           if (d)
@@ -126,14 +129,15 @@ const Reports = () => {
               bookings: 1,
               revenue: data.price,
             };
-        }
 
-        if (createdAt >= startOfWeek && createdAt <= endOfWeek) {
-          let day = createdAt.getDay();
-          if (day == 0) day = 6;
-          else day--;
-          weeklyBookings[day]++;
+          if (createdAt >= startOfWeek && createdAt <= endOfWeek) {
+            let day = createdAt.getDay();
+            if (day == 0) day = 6;
+            else day--;
+            weeklyBookings[day]++;
+          }
         }
+        monthly[createdAt.getMonth()] += data.price;
       });
       setBookingsData({
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -144,10 +148,23 @@ const Reports = () => {
             backgroundColor: "#6c5dd3",
           },
         ],
-      })
-      setTopPerformingServices(topServices)
-      setTotalBookings(totalB)
-      setTotalRevenue(totalR)
+      });
+      setTopPerformingServices(topServices);
+      setTotalBookings(totalB);
+      setTotalRevenue(totalR);
+      setRevenueData({
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        datasets: [
+          {
+            label: "Revenue",
+            data: monthly,
+            borderColor: "#ff4d8f",
+            backgroundColor: "rgba(255, 77, 143, 0.1)",
+            tension: 0.4,
+            fill: true,
+          },
+        ],
+      });
       // console.log(
       //   totalRevenue,
       //   totalB,
@@ -159,7 +176,7 @@ const Reports = () => {
     });
   };
 
-  const getPercentage = (b) => b / totalBookings * 100
+  const getPercentage = (b) => (b / totalBookings) * 100;
 
   useEffect(() => {
     getBookings();
@@ -195,7 +212,7 @@ const Reports = () => {
           </div>
           <div className="metric-info">
             <h3>Total Revenue</h3>
-            <div className="metric-value">${totalRevenue}</div>
+            <div className="metric-value">₱{totalRevenue}</div>
             <div className="metric-trend positive">+12.5% from last period</div>
           </div>
         </div>
@@ -297,7 +314,7 @@ const Reports = () => {
                 <h4>{key}</h4>
                 <div className="stat-row">
                   <span>Bookings: {topPerformingServices[key].bookings}</span>
-                  <span>Revenue: ${topPerformingServices[key].revenue}</span>
+                  <span>Revenue: ₱{topPerformingServices[key].revenue}</span>
                 </div>
               </div>
               <div className="service-growth">

@@ -41,9 +41,9 @@ function App() {
         }
       >
         <Route index element={<Navigate to="/admin/home" replace />} />
-        <Route path="home" element={<Home />} />
+        <Route path="home" element={<Reports />} />
         <Route path="services" element={<Services />} />
-        <Route path="reports" element={<Reports />} />
+        {/* <Route path="reports" element={<Reports />} /> */}
         <Route path="verification" element={<Verification />} />
         <Route path="users" element={<Users />} />
         <Route path="messages" element={<Messages />} />

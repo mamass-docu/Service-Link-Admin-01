@@ -1,10 +1,10 @@
 // Services.js
-import React, { useState } from 'react';
-import { FaPlus, FaSearch, FaClock, FaBookmark } from 'react-icons/fa';
-import '../css/Services.css';
+import React, { useState } from "react";
+import { FaPlus, FaSearch, FaClock, FaBookmark } from "react-icons/fa";
+import "../css/Services.css";
 
 const Services = () => {
-  const [services, ] = useState([
+  const [services] = useState([
     {
       id: 1,
       name: "House Cleaning",
@@ -12,7 +12,8 @@ const Services = () => {
       duration: "2 hours",
       status: "active",
       bookings: 25,
-      description: "Complete house cleaning service including dusting, vacuuming, and sanitizing"
+      description:
+        "Complete house cleaning service including dusting, vacuuming, and sanitizing",
     },
     {
       id: 2,
@@ -21,7 +22,8 @@ const Services = () => {
       duration: "3 hours",
       status: "active",
       bookings: 18,
-      description: "Deep carpet cleaning with professional equipment and eco-friendly products"
+      description:
+        "Deep carpet cleaning with professional equipment and eco-friendly products",
     },
     {
       id: 3,
@@ -30,8 +32,9 @@ const Services = () => {
       duration: "1.5 hours",
       status: "inactive",
       bookings: 12,
-      description: "Professional window cleaning service for both interior and exterior"
-    }
+      description:
+        "Professional window cleaning service for both interior and exterior",
+    },
   ]);
 
   return (
@@ -44,9 +47,9 @@ const Services = () => {
         <div className="search-filters">
           <div className="search-box">
             <FaSearch className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Search services by name, price..." 
+            <input
+              type="text"
+              placeholder="Search services by name, price..."
               className="search-input"
             />
           </div>
@@ -66,7 +69,7 @@ const Services = () => {
       </div>
 
       <div className="services-grid">
-        {services.map(service => (
+        {services.map((service) => (
           <div key={service.id} className="service-card">
             <div className="service-header">
               <h3>{service.name}</h3>
@@ -74,13 +77,13 @@ const Services = () => {
                 {service.status}
               </span>
             </div>
-            
+
             <p className="service-description">{service.description}</p>
-            
+
             <div className="service-info">
               <div className="info-item">
                 <span className="label">Price:</span>
-                <span className="value">${service.price}</span>
+                <span className="value">₱{service.price}</span>
               </div>
               <div className="info-item">
                 <FaClock className="info-icon" />
