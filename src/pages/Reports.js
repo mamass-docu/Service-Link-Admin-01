@@ -1,14 +1,14 @@
 // Reports.js
-import React, { useState } from 'react';
-import { 
-  FaChartLine, 
-  FaUsers, 
-  FaStar, 
+import React, { useEffect, useState } from "react";
+import {
+  FaChartLine,
+  FaUsers,
+  FaStar,
   FaClock,
   FaCalendarAlt,
-  FaDownload
-} from 'react-icons/fa';
-import { Line, Bar } from 'react-chartjs-2'; // Removed Doughnut since it's not used
+  FaDownload,
+} from "react-icons/fa";
+import { Line, Bar } from "react-chartjs-2"; // Removed Doughnut since it's not used
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,9 +20,10 @@ import {
   Tooltip,
   Legend,
   ArcElement,
-} from 'chart.js';
+} from "chart.js";
 
-import '../css/Reports.css'; 
+import "../css/Reports.css";
+import { get, loadingProcess, where } from "../firebase/helper";
 
 ChartJS.register(
   CategoryScale,
@@ -37,29 +38,132 @@ ChartJS.register(
 );
 
 const Reports = () => {
-  const [dateRange, setDateRange] = useState('This Month');
+  const [dateRange, setDateRange] = useState("This Month");
 
   // Chart Data
   const revenueData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-      label: 'Revenue',
-      data: [30000, 35000, 25000, 45000, 40000, 50000],
-      borderColor: '#ff4d8f',
-      backgroundColor: 'rgba(255, 77, 143, 0.1)',
-      tension: 0.4,
-      fill: true
-    }]
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+    datasets: [
+      {
+        label: "Revenue",
+        data: [30000, 35000, 25000, 45000, 40000, 50000],
+        borderColor: "#ff4d8f",
+        backgroundColor: "rgba(255, 77, 143, 0.1)",
+        tension: 0.4,
+        fill: true,
+      },
+    ],
   };
 
-  const bookingsData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [{
-      label: 'Bookings',
-      data: [25, 30, 20, 35, 28, 15, 22],
-      backgroundColor: '#6c5dd3'
-    }]
+  const [topPerformingServices, setTopPerformingServices] = useState({})
+  const [totalBookings, setTotalBookings] = useState(0)
+  const [totalRevenue, setTotalRevenue] = useState(0)
+
+  const [bookingsData, setBookingsData] = useState({
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      {
+        label: "Bookings",
+        data: [0,0,0,0,0,0,0],
+        backgroundColor: "#6c5dd3",
+      },
+    ],
+  });
+
+  const getBookings = () => {
+    loadingProcess(async () => {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDayOfMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0,
+        23,
+        59,
+        59
+      );
+      const currentDay = now.getDay();
+
+      // Calculate the start of the week (Sunday)
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - currentDay); // Set the date to Sunday of the current week
+      startOfWeek.setHours(0, 0, 0, 0); // Set to midnight
+
+      // Calculate the end of the week (Saturday)
+      const endOfWeek = new Date(now);
+      endOfWeek.setDate(now.getDate() + (6 - currentDay)); // Set the date to Saturday of the current week
+      endOfWeek.setHours(23, 59, 59, 999);
+
+      const snap = await get(
+        "bookings",
+        // where("createdAt", ">=", firstDayOfMonth),
+        // where("createdAt", "<=", lastDayOfMonth),
+        where("status", "!=", "Cancelled")
+      );
+
+      let totalR = 0;
+      let totalB = 0;
+      let topServices = {};
+      let weeklyBookings = [0, 0, 0, 0, 0, 0, 0];
+      snap.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.status == "Declined") return;
+
+        totalR += data.price;
+        totalB++;
+
+        const createdAt = data.createdAt.toDate();
+        if (createdAt >= firstDayOfMonth && createdAt <= lastDayOfMonth) {
+          console.log("done");
+          const d = topServices[data.service];
+          if (d)
+            topServices[data.service] = {
+              bookings: d.bookings + 1,
+              revenue: d.revenue + data.price,
+            };
+          else
+            topServices[data.service] = {
+              bookings: 1,
+              revenue: data.price,
+            };
+        }
+
+        if (createdAt >= startOfWeek && createdAt <= endOfWeek) {
+          let day = createdAt.getDay();
+          if (day == 0) day = 6;
+          else day--;
+          weeklyBookings[day]++;
+        }
+      });
+      setBookingsData({
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+          {
+            label: "Bookings",
+            data: weeklyBookings,
+            backgroundColor: "#6c5dd3",
+          },
+        ],
+      })
+      setTopPerformingServices(topServices)
+      setTotalBookings(totalB)
+      setTotalRevenue(totalR)
+      // console.log(
+      //   totalRevenue,
+      //   totalB,
+      //   topServices,
+      //   weeklyBookings,
+      //   (2/totalB * 100),
+      //   "report"
+      // );
+    });
   };
+
+  const getPercentage = (b) => b / totalBookings * 100
+
+  useEffect(() => {
+    getBookings();
+  }, []);
 
   return (
     <div className="reports-container">
@@ -67,7 +171,7 @@ const Reports = () => {
         <div className="header-filters">
           <div className="date-filter">
             <FaCalendarAlt />
-            <select 
+            <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
             >
@@ -91,7 +195,7 @@ const Reports = () => {
           </div>
           <div className="metric-info">
             <h3>Total Revenue</h3>
-            <div className="metric-value">$45,678</div>
+            <div className="metric-value">${totalRevenue}</div>
             <div className="metric-trend positive">+12.5% from last period</div>
           </div>
         </div>
@@ -102,7 +206,7 @@ const Reports = () => {
           </div>
           <div className="metric-info">
             <h3>Total Bookings</h3>
-            <div className="metric-value">234</div>
+            <div className="metric-value">{totalBookings}</div>
             <div className="metric-trend positive">+8.2% from last period</div>
           </div>
         </div>
@@ -134,15 +238,15 @@ const Reports = () => {
         <div className="chart-container revenue-chart">
           <h3>Revenue Overview</h3>
           <div className="chart-content">
-            <Line 
-              data={revenueData} 
+            <Line
+              data={revenueData}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                  legend: { display: false }
-                }
-              }} 
+                  legend: { display: false },
+                },
+              }}
             />
           </div>
         </div>
@@ -150,14 +254,14 @@ const Reports = () => {
         <div className="chart-container bookings-chart">
           <h3>Weekly Bookings</h3>
           <div className="chart-content">
-            <Bar 
+            <Bar
               data={bookingsData}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                  legend: { display: false }
-                }
+                  legend: { display: false },
+                },
               }}
             />
           </div>
@@ -167,22 +271,43 @@ const Reports = () => {
       <div className="services-performance">
         <h3>Top Performing Services</h3>
         <div className="service-stats">
-          {[
-            { name: 'House Cleaning', bookings: 156, revenue: 15600, growth: 12 },
-            { name: 'Carpet Cleaning', bookings: 98, revenue: 12250, growth: 8 },
-            { name: 'Window Cleaning', bookings: 67, revenue: 8375, growth: -3 }
-          ].map((service, index) => (
-            <div key={index} className="service-stat-card">
+          {/* {[
+            {
+              name: "House Cleaning",
+              bookings: 156,
+              revenue: 15600,
+              growth: 12,
+            },
+            {
+              name: "Carpet Cleaning",
+              bookings: 98,
+              revenue: 12250,
+              growth: 8,
+            },
+            {
+              name: "Window Cleaning",
+              bookings: 67,
+              revenue: 8375,
+              growth: -3,
+            },
+          ] */}
+          {Object.keys(topPerformingServices).map((key) => (
+            <div key={key} className="service-stat-card">
               <div className="service-details">
-                <h4>{service.name}</h4>
+                <h4>{key}</h4>
                 <div className="stat-row">
-                  <span>Bookings: {service.bookings}</span>
-                  <span>Revenue: ${service.revenue}</span>
+                  <span>Bookings: {topPerformingServices[key].bookings}</span>
+                  <span>Revenue: ${topPerformingServices[key].revenue}</span>
                 </div>
               </div>
               <div className="service-growth">
-                <div className={`growth-indicator ${service.growth >= 0 ? 'positive' : 'negative'}`}>
-                  {service.growth}%
+                <div
+                  className={`growth-indicator ${
+                    "positive"
+                    // service.growth >= 0 ? "positive" : "negative"
+                  }`}
+                >
+                  {getPercentage(topPerformingServices[key].bookings)}%
                 </div>
               </div>
             </div>

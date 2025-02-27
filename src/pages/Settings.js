@@ -1,5 +1,5 @@
 // Settings.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaUser,
   FaBell,
@@ -10,7 +10,16 @@ import {
 } from "react-icons/fa";
 // Removed unused imports: FaGlobe and FaEnvelope
 import "../css/Settings.css";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { specificLoadingProcess, update } from "../firebase/helper";
+import { setSpecificLoading, setUser } from "../state/globalsSlice";
+import Spinner from "../components/Spinner";
+import {
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+} from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 const Settings = () => {
   const user = useSelector((state) => state.globals.user);
@@ -21,7 +30,80 @@ const Settings = () => {
 
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
-  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber);
+  const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber ?? "");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const isLoading = useSelector((state) => state.globals.specificLoading);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(setSpecificLoading(false));
+  }, []);
+
+  const handleChangePassword = () => {
+    if (isLoading) return;
+
+    if (newPassword.trim() == ""){
+      alert("Please fill the password!!!")
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    specificLoadingProcess(
+      async () => {
+        const _user = auth.currentUser;
+
+        const credential = EmailAuthProvider.credential(
+          _user.email,
+          currentPassword
+        );
+        await reauthenticateWithCredential(_user, credential);
+        await updatePassword(_user, newPassword);
+        console.log("✅ Password updated successfully!");
+        alert("Your password has been changed.");
+      },
+      (error) => {
+        if (error.message == "Firebase: Error (auth/invalid-credential).") {
+          alert("Invalid current password.");
+          return;
+        }
+        alert(error.message);
+      }
+    );
+  };
+
+  const updateProfile = () => {
+    if (isLoading) return;
+
+    if (!name?.trim() || !phoneNumber?.trim()) {
+      alert("Please fill all fields to continue!!!");
+      return;
+    }
+
+    specificLoadingProcess(async () => {
+      await update("users", user.id, {
+        name: name,
+        phoneNumber: phoneNumber,
+      });
+
+      dispatch(
+        setUser({
+          ...user,
+          name: name,
+          phoneNumber: phoneNumber,
+        })
+      );
+
+      alert("Successfully updated profile.");
+    });
+  };
 
   return (
     <div className="settings-container">
@@ -42,7 +124,7 @@ const Settings = () => {
               <label>Full Name</label>
               <input
                 value={name}
-                onChange={setName}
+                onChange={(e) => setName(e.target.value)}
                 type="text"
                 placeholder="Enter name"
               />
@@ -51,7 +133,8 @@ const Settings = () => {
               <label>Email Address</label>
               <input
                 value={email}
-                onChange={setEmail}
+                disabled
+                // onChange={setEmail}
                 type="email"
                 placeholder="Enter email"
               />
@@ -60,12 +143,18 @@ const Settings = () => {
               <label>Phone Number</label>
               <input
                 value={phoneNumber}
-                onChange={setPhoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
                 type="tel"
                 placeholder="Enter phone number"
               />
             </div>
-            <button className="save-btn">Save Changes</button>
+            {isLoading ? (
+              <Spinner size="30px" />
+            ) : (
+              <button onClick={updateProfile} className="save-btn">
+                Save Changes
+              </button>
+            )}
           </div>
         </div>
 
@@ -112,17 +201,34 @@ const Settings = () => {
           <div className="card-content">
             <div className="form-group">
               <label>Current Password</label>
-              <input type="password" placeholder="Enter current password" />
+              <input
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                type="password"
+                placeholder="Enter current password"
+              />
             </div>
             <div className="form-group">
               <label>New Password</label>
-              <input type="password" placeholder="Enter new password" />
+              <input
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                type="password"
+                placeholder="Enter new password"
+              />
             </div>
             <div className="form-group">
               <label>Confirm Password</label>
-              <input type="password" placeholder="Confirm new password" />
+              <input
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                type="password"
+                placeholder="Confirm new password"
+              />
             </div>
-            <button className="save-btn">Update Password</button>
+            <button onClick={handleChangePassword} className="save-btn">
+              Update Password
+            </button>
           </div>
         </div>
 

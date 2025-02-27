@@ -7,12 +7,15 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   where,
 } from "firebase/firestore";
 import { db } from "../firebase/firebase";
+import { add, specificLoadingProcess } from "../firebase/helper";
 import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
-import { data } from "react-router-dom";
-import { cyan } from "@mui/material/colors";
+import { useDispatch, useSelector } from "react-redux";
+import Spinner from "../components/Spinner";
+import { setSpecificLoading } from "../state/globalsSlice";
 
 const Messages = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -25,6 +28,7 @@ const Messages = () => {
   const lastMessageRef = useRef(null);
   // Sample service providers data
   const serviceProviders = [
+    { id: "Aircon", name: "Aircon Services" },
     { id: "House Cleaning", name: "House Cleaning Services" },
     { id: "Plumbing", name: "Plumbing Services" },
     { id: "Electrical", name: "Electrical Services" },
@@ -32,37 +36,13 @@ const Messages = () => {
     { id: "Landscaping", name: "Landscaping Services" },
   ];
 
-  // Sample chats data with service provider information
-  // const [chats, setChats] = useState([
-  //   {
-  //     id: 1,
-  //     name: "Alice Smith",
-  //     serviceProvider: "House Cleaning Services",
-  //     providerId: 1,
-  //     lastMessage: "Thank you for your service!",
-  //     time: "10:30 AM",
-  //     unread: 2,
-  //     avatar:
-  //       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500",
-  //     status: "online",
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Bob Johnson",
-  //     serviceProvider: "Plumbing Services",
-  //     providerId: 2,
-  //     lastMessage: "When can you start?",
-  //     time: "9:15 AM",
-  //     unread: 0,
-  //     avatar:
-  //       "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=500",
-  //     status: "offline",
-  //   },
-  //   // Add more chat items as needed
-  // ]);
+  const isLoading = useSelector((state) => state.globals.specificLoading);
+  const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(setSpecificLoading(false));
     let temp = {};
+    let users = {};
     let unsubsChat = null;
     let unsubsActive = null;
 
@@ -77,7 +57,11 @@ const Messages = () => {
       snapshot.docs.forEach((item) => {
         const snapData = item.data();
 
-        let d = temp[snapData.senderId];
+        // let d = temp[snapData.senderId];
+
+        // if (!d){
+        //   temp[snapData.senderId] = {...users[snapData.senderId], chats:[]}
+        // }
 
         const val = {
           id: item.id,
@@ -89,15 +73,33 @@ const Messages = () => {
         if (!c[snapData.senderId]) c[snapData.senderId] = [];
         c[snapData.senderId].push(val);
 
-        if (!d || !d?.chats) temp[snapData.senderId] = { ...d, chats: [] };
-        temp[snapData.senderId].chats = c[snapData.senderId];
+        // if (!d || !d?.chats) temp[snapData.senderId] = { ...d, chats: [] };
+        // temp[snapData.senderId].chats = c[snapData.senderId];
       });
-      if (selectedChat && c[selectedChat.senderId]) {
+
+
+      console.log(selectedChat, "selected chat value");
+      
+      if (selectedChat) {
+        console.log(c[selectedChat.senderId], "selectedChat");
+        const chatValue = c[selectedChat.senderId]
+        if (chatValue)
+          setSelectedChat({...selectedChat, chats: chatValue})
+        else setSelectedChat(null);
       }
-      console.log(temp, "supchats data ");
+
+      temp = {};
+      for (let id in c) {
+        temp[id] = {
+          ...users[id],
+          chats: c[id],
+        };
+      }
+
       if (unsubsActive) {
         console.log("nasa loob");
 
+        console.log(temp);
         setSupportChats(temp);
         refresh(temp);
         return;
@@ -107,19 +109,23 @@ const Messages = () => {
         snap.docs.forEach((dc) => {
           const data = dc.data();
           const chatData = temp[dc.id];
-          if (!chatData) return;
-          temp[dc.id] = {
+          const userData = {
             senderId: dc.id,
             name: data.name,
             service: data.service,
             image: data.image,
             isOnline: data.isOnline,
-            chats: chatData ? chatData.chats : [],
           };
+
+          users[dc.id] = userData;
+
+          if (!chatData) return;
+
+          temp[dc.id] = {...userData, chats: chatData.chats};
         });
+
         setSupportChats(temp);
         refresh(temp);
-        console.log(temp, "active data");
       });
     });
 
@@ -131,14 +137,24 @@ const Messages = () => {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (message.trim()) {
-      console.log("Sending message:", message);
+    if (isLoading || message.trim() == "" || !selectedChat) return;
+
+    specificLoadingProcess(async () => {
       setMessage("");
-    }
+      await add("supportChats", {
+        isUser: false,
+        message: message,
+        senderId: selectedChat.senderId,
+        sentAt: serverTimestamp(),
+      });
+    });
   };
 
+  useEffect(()=>{
+
+  }, [selectedChat])
+
   useEffect(() => {
-    console.log("sfsdflkjsdfl");
     refresh(supportChats);
   }, [searchTerm, filterProvider]);
 
@@ -170,6 +186,11 @@ const Messages = () => {
   //   }
   //   return temp;
   // };
+
+  const onSelectChat = (chat) => {
+    console.log(chat, "selected chat change");
+    setSelectedChat(chat)
+  }
 
   const getMessageStyle = (isUser) =>
     isUser
@@ -229,7 +250,7 @@ const Messages = () => {
                   ? "active"
                   : ""
               }`}
-              onClick={() => setSelectedChat(chat)}
+              onClick={() => onSelectChat(chat)}
             >
               <div className="chat-avatar-container">
                 {chat.image ? (
@@ -333,9 +354,13 @@ const Messages = () => {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
-              <button type="submit" className="send-button">
-                <FaPaperPlane />
-              </button>
+              {isLoading ? (
+                <Spinner size={"20px"} />
+              ) : (
+                <button type="submit" className="send-button">
+                  <FaPaperPlane />
+                </button>
+              )}
             </form>
           </>
         ) : (

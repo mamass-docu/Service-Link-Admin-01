@@ -1,5 +1,5 @@
 // components/Login.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import "../css/login.css";
@@ -7,8 +7,7 @@ import { find, specificLoadingProcess } from "../firebase/helper";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser } from "../state/globalsSlice";
-import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
+import { setSpecificLoading, setUser } from "../state/globalsSlice";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,6 +20,10 @@ const Login = () => {
   // const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.globals.specificLoading);
+
+  useEffect(() => {
+    dispatch(setSpecificLoading(false))
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target;
