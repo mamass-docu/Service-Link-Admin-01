@@ -111,8 +111,8 @@ const Reports = () => {
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.status == "Declined") return;
-
-        totalR += data.price;
+        const price = parseInt(data.price);
+        totalR += price;
         totalB++;
 
         const createdAt = data.createdAt.toDate();
@@ -122,12 +122,12 @@ const Reports = () => {
           if (d)
             topServices[data.service] = {
               bookings: d.bookings + 1,
-              revenue: d.revenue + data.price,
+              revenue: d.revenue + price,
             };
           else
             topServices[data.service] = {
               bookings: 1,
-              revenue: data.price,
+              revenue: price,
             };
 
           if (createdAt >= startOfWeek && createdAt <= endOfWeek) {
@@ -137,7 +137,7 @@ const Reports = () => {
             weeklyBookings[day]++;
           }
         }
-        monthly[createdAt.getMonth()] += data.price;
+        monthly[createdAt.getMonth()] += price;
       });
       setBookingsData({
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
