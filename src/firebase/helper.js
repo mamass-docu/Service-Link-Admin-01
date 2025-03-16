@@ -69,6 +69,21 @@ const remove = async (collectionName, uid) => {
   await deleteDoc(doc(db, collectionName, uid));
 };
 
+
+const addNotif = (receiverId, title, body, screen, params) => {
+  let data = {
+    receiverId: receiverId,
+    title: title,
+    body: body,
+    screen: screen,
+    // seen: false,
+    prompt: false,
+    sentAt: serverTimestamp(),
+  };
+  if (params) data["params"] = params;
+  addDoc(collection(db, "notifications"), data);
+};
+
 export {
   loadingProcess,
   specificLoadingProcess,
@@ -81,4 +96,5 @@ export {
   remove,
   where,
   serverTimestamp,
+  addNotif,
 };

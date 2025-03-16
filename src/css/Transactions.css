@@ -114,7 +114,30 @@ body {
     background-color: #0056b3; /* Darker blue on hover */
   }
   
+  .pagination-btn-active {
+    margin: 0 10px;
+    padding: 10px 15px;
+    background-color: #007bff; /* Blue button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .pagination-btn-active:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+  }
+  
   .pagination-info {
     font-weight: bold;
     margin: 0 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 10px 15px;
+  }
+  
+  .pagination-info:hover {
+    color: white;
+    background-color: #0056b3; /* Darker blue on hover */
   }

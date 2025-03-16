@@ -12,7 +12,13 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import "../css/Verification.css";
-import { all, find, loadingProcess, update } from "../firebase/helper";
+import {
+  addNotif,
+  all,
+  find,
+  loadingProcess,
+  update,
+} from "../firebase/helper";
 import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
 
 const Verification = () => {
@@ -87,6 +93,13 @@ const Verification = () => {
       await update("users", id, {
         verified: true,
       });
+      addNotif(
+        id,
+        "Verification Status",
+        "Your verification has been approved.",
+        "VerificationStatus",
+        null
+      );
       await refresh();
     });
   };
@@ -99,6 +112,13 @@ const Verification = () => {
       await update("users", id, {
         verified: false,
       });
+      addNotif(
+        id,
+        "Verification Status",
+        "Your verification has been rejected.",
+        "VerificationStatus",
+        null
+      );
       await refresh();
     });
   };

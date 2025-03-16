@@ -3,28 +3,47 @@ import "../css/Transactions.css"; // Ensure this CSS file is created
 import { all, loadingProcess } from "../firebase/helper";
 import { saveAs } from "file-saver";
 import Papa from "papaparse";
+import { data } from "react-router-dom";
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
+  const [allData, setAllData] = useState([]);
+  const [pages, setPages] = useState([1]);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     loadingProcess(async () => {
       const snap = await all("bookings");
-      setTransactions(
-        snap.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            providerName: data.providerName,
-            customerName: data.customerName,
-            price: data.price,
-            status: data.status,
-            date: data.date,
-          };
-        })
-      );
+      const data = snap.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          providerName: data.providerName,
+          customerName: data.customerName,
+          price: data.price,
+          status: data.status,
+          date: data.date,
+        };
+      });
+      setAllData(data);
+      if (data.length < 11) {
+        setTransactions(data);
+        return;
+      }
+
+      let size =  parseInt(data.length / 10)
+      if (data.length % 10 != 0)
+        size++
+      let t = [1];
+      setTransactions(data.slice(0, 10));
+      for (let i = 2; i <= size; i++) t.push(i);
+      setPages(t);
     });
   }, []);
+
+  useEffect(() => {
+    setTransactions(allData.slice(10 * (page - 1), 10 * page));
+  }, [page]);
 
   const onDownloadAsCSV = () => {
     if (transactions.length == 0) {
@@ -86,9 +105,31 @@ const Transactions = () => {
         </tbody>
       </table>
       <footer className="pagination">
-        <button className="pagination-btn">Previous</button>
-        <span className="pagination-info">1</span>
-        <button className="pagination-btn">Next</button>
+        <button
+          disabled={page == 1}
+          className="pagination-btn"
+          style={page == 1 ? { backgroundColor: "gray" } : {}}
+          onClick={() => setPage(prev => prev - 1)}
+        >
+          Previous
+        </button>
+        {pages.map((p) => (
+          <span
+            key={p}
+            onClick={() => setPage(p)}
+            className={page == p ? "pagination-btn-active" : "pagination-info"}
+          >
+            {p}
+          </span>
+        ))}
+        <button
+          disabled={page == pages.length}
+          className="pagination-btn"
+          style={page == pages.length ? { backgroundColor: "gray" } : {}}
+          onClick={() => setPage(prev => prev + 1)}
+        >
+          Next
+        </button>
       </footer>
     </div>
   );

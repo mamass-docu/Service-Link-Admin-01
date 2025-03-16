@@ -55,8 +55,9 @@ const Reports = () => {
     ],
   });
 
-  const [topPerformingServices, setTopPerformingServices] = useState({});
+  const [topPerformingServices, setTopPerformingServices] = useState([]);
   const [totalBookings, setTotalBookings] = useState(0);
+  const [allBookingsTotal, setAllBookingsTotal] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
 
   const [bookingsData, setBookingsData] = useState({
@@ -105,18 +106,22 @@ const Reports = () => {
 
       let totalR = 0;
       let totalB = 0;
+      let totalAB = 0;
       let topServices = {};
       let weeklyBookings = [0, 0, 0, 0, 0, 0, 0];
       let monthly = [0, 0, 0, 0, 0, 0];
       snap.docs.forEach((doc) => {
         const data = doc.data();
+        // if (data.status != "Completed") return;
         if (data.status == "Declined") return;
+
         const price = parseInt(data.price);
         totalR += price;
-        totalB++;
+        totalAB++;
 
         const createdAt = data.createdAt.toDate();
         if (createdAt.getMonth() == currentMonth) {
+          totalB++;
           console.log("done");
           const d = topServices[data.service];
           if (d)
@@ -149,8 +154,12 @@ const Reports = () => {
           },
         ],
       });
-      setTopPerformingServices(topServices);
+      let sorted = [];
+      for (let serviceName in topServices) 
+          sorted.push({name:serviceName, ...topServices[serviceName]});
+      setTopPerformingServices(sorted.sort((a,b) => b.bookings-a.bookings));
       setTotalBookings(totalB);
+      setAllBookingsTotal(totalAB);
       setTotalRevenue(totalR);
       setRevenueData({
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -176,7 +185,7 @@ const Reports = () => {
     });
   };
 
-  const getPercentage = (b) => (b / totalBookings) * 100;
+  const getPercentage = (b) => parseInt((b / totalBookings) * 100);
 
   useEffect(() => {
     getBookings();
@@ -223,7 +232,7 @@ const Reports = () => {
           </div>
           <div className="metric-info">
             <h3>Total Bookings</h3>
-            <div className="metric-value">{totalBookings}</div>
+            <div className="metric-value">{allBookingsTotal}</div>
             <div className="metric-trend positive">+8.2% from last period</div>
           </div>
         </div>
@@ -308,13 +317,13 @@ const Reports = () => {
               growth: -3,
             },
           ] */}
-          {Object.keys(topPerformingServices).map((key) => (
+          {topPerformingServices.map((service, key) => (
             <div key={key} className="service-stat-card">
               <div className="service-details">
-                <h4>{key}</h4>
+                <h4>{service.name}</h4>
                 <div className="stat-row">
-                  <span>Bookings: {topPerformingServices[key].bookings}</span>
-                  <span>Revenue: ₱{topPerformingServices[key].revenue}</span>
+                  <span>Bookings: {service.bookings}</span>
+                  <span>Revenue: ₱{service.revenue}</span>
                 </div>
               </div>
               <div className="service-growth">
@@ -324,7 +333,7 @@ const Reports = () => {
                     // service.growth >= 0 ? "positive" : "negative"
                   }`}
                 >
-                  {getPercentage(topPerformingServices[key].bookings)}%
+                  {getPercentage(service.bookings)}%
                 </div>
               </div>
             </div>

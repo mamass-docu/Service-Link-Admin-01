@@ -11,36 +11,32 @@ import {
 } from "react-icons/fa";
 import "../css/Users.css";
 import { FaBan } from "react-icons/fa";
-import { all, loadingProcess } from "../firebase/helper";
+import { addNotif, all, loadingProcess, update } from "../firebase/helper";
 import { useSelector } from "react-redux";
 import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
+
+const Modal = ({ show, onConfirm, onCancel, message }) => {
+  if (!show) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <h2>{message}</h2>
+        <div className="modal-actions">
+          <button onClick={onCancel}>Cancel</button>
+          <button onClick={onConfirm}>Confirm</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userType, setUserType] = useState("All");
-  const [users, setUsers] = useState([
-    // {
-    //   id: 1,
-    //   name: "John Smith",
-    //   email: "john.smith@example.com",
-    //   phone: "+1 234-567-8900",
-    //   type: "admin",
-    //   status: "active",
-    //   joinDate: "2024-01-15",
-    //   lastLogin: "2024-01-28"
-    // },
-    // {
-    //   id: 2,
-    //   name: "Sarah Johnson",
-    //   email: "sarah.j@example.com",
-    //   phone: "+1 234-567-8901",
-    //   type: "provider",
-    //   status: "active",
-    //   joinDate: "2024-01-10",
-    //   lastLogin: "2024-01-27"
-    // },
-    // Add more users as needed
-  ]);
+  const [idToDelete, setIDToDelete] = useState(null);
+  const [banData, setBanData] = useState(null);
+  const [users, setUsers] = useState([]);
 
   const userId = useSelector((state) => state.globals.user.id);
 
@@ -52,12 +48,15 @@ const Users = () => {
         if (doc.id == userId) return;
 
         const data = doc.data();
+        if (!data.active) return;
+
         temp.push({
           id: doc.id,
           name: data.name,
           image: data.image,
           role: data.role,
           email: data.email,
+          banned: data.banned,
           phoneNumber: data.phoneNumber,
           createdAt: timestampToStringConverter(data.createdAt),
           lastSeen: timestampToStringConverter(data.lastSeen),
@@ -77,9 +76,28 @@ const Users = () => {
     console.log("Edit user:", id);
   };
 
-  const handleDeleteUser = (id) => {
-    // Implement delete user functionality
-    console.log("Delete user:", id);
+  const handleDeleteUser = async () => {
+    await update("users", idToDelete, {
+      active: false,
+    });
+    addNotif(idToDelete, "deleted", "", "Login", null);
+    setUsers((prev) => prev.filter((b) => b.id == idToDelete));
+    setIDToDelete(null);
+    alert("Successfully deleted a user.")
+  };
+
+  const handleBanUser = async () => {
+    await update("users", banData.id, {
+      banned: banData.banned,
+    });
+    if (banData.banned) addNotif(banData.id, "banned", "", "Login", null);
+    setUsers((prev) =>
+      prev.map((b) =>
+        b.id == banData.id ? { ...b, banned: banData.banned } : b
+      )
+    );
+    setBanData(null);
+    alert(`Succesfully ${banData.banned ? "" : "un"}banned a user.`)
   };
 
   const filteredUsers =
@@ -108,9 +126,9 @@ const Users = () => {
           <h2>User Management</h2>
           <p>Manage system users and their roles</p>
         </div>
-        <button className="add-user-btn" onClick={handleAddUser}>
+        {/* <button className="add-user-btn" onClick={handleAddUser}>
           <FaUserPlus /> Add New User
-        </button>
+        </button> */}
       </div>
 
       <div className="users-controls">
@@ -173,22 +191,27 @@ const Users = () => {
             </div>
 
             <div className="user-actions">
-              <button
+              {/* <button
                 className="edit-btn"
                 onClick={() => handleEditUser(user.id)}
               >
                 <FaEdit /> Edit
-              </button>
+              </button> */}
               <button
                 className="delete-btn"
-                onClick={() => handleEditUser(user.id)}
+                onClick={() =>
+                  setBanData({
+                    id: user.id,
+                    banned: user.banned ? false : true,
+                  })
+                }
               >
                 <FaBan />
-                Ban User
+                {user.banned ? "Unban" : "Ban"} User
               </button>
               <button
                 className="delete-btn"
-                onClick={() => handleDeleteUser(user.id)}
+                onClick={() => setIDToDelete(user.id)}
               >
                 <FaTrash /> Delete
               </button>
@@ -196,6 +219,22 @@ const Users = () => {
           </div>
         ))}
       </div>
+
+      <Modal
+        message={`Are you sure you want to ${
+          banData?.banned ? "" : "un"
+        }ban this user?`}
+        show={banData}
+        onConfirm={handleBanUser}
+        onCancel={() => setBanData(null)}
+      />
+
+      <Modal
+        message={"Are you sure you want to delete this user?"}
+        show={idToDelete}
+        onConfirm={handleDeleteUser}
+        onCancel={() => setIDToDelete(false)}
+      />
     </div>
   );
 };
