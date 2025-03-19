@@ -66,16 +66,6 @@ const Users = () => {
     });
   }, []);
 
-  const handleAddUser = () => {
-    // Implement add user functionality
-    console.log("Add user clicked");
-  };
-
-  const handleEditUser = (id) => {
-    // Implement edit user functionality
-    console.log("Edit user:", id);
-  };
-
   const handleDeleteUser = async () => {
     await update("users", idToDelete, {
       active: false,
@@ -83,7 +73,7 @@ const Users = () => {
     addNotif(idToDelete, "deleted", "", "Login", null);
     setUsers((prev) => prev.filter((b) => b.id == idToDelete));
     setIDToDelete(null);
-    alert("Successfully deleted a user.")
+    alert("Successfully deleted a user.");
   };
 
   const handleBanUser = async () => {
@@ -97,7 +87,7 @@ const Users = () => {
       )
     );
     setBanData(null);
-    alert(`Succesfully ${banData.banned ? "" : "un"}banned a user.`)
+    alert(`Succesfully ${banData.banned ? "" : "un"}banned a user.`);
   };
 
   const filteredUsers =

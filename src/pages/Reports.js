@@ -122,7 +122,6 @@ const Reports = () => {
         const createdAt = data.createdAt.toDate();
         if (createdAt.getMonth() == currentMonth) {
           totalB++;
-          console.log("done");
           const d = topServices[data.service];
           if (d)
             topServices[data.service] = {
@@ -155,9 +154,9 @@ const Reports = () => {
         ],
       });
       let sorted = [];
-      for (let serviceName in topServices) 
-          sorted.push({name:serviceName, ...topServices[serviceName]});
-      setTopPerformingServices(sorted.sort((a,b) => b.bookings-a.bookings));
+      for (let serviceName in topServices)
+        sorted.push({ name: serviceName, ...topServices[serviceName] });
+      setTopPerformingServices(sorted.sort((a, b) => b.bookings - a.bookings));
       setTotalBookings(totalB);
       setAllBookingsTotal(totalAB);
       setTotalRevenue(totalR);

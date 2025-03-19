@@ -9,13 +9,15 @@ import {
   FaShieldAlt,
   FaUsers,
   FaComments,
-  FaMoneyBillWave, // Added for Transactions
+  FaMoneyBillWave,
+  FaFlag, // Added for Transactions
 } from "react-icons/fa";
 import "../css/Layout.css";
 import { loadingProcess, serverTimestamp, update } from "../firebase/helper";
 import { useDispatch, useSelector } from "react-redux";
 import { auth } from "../firebase/firebase";
 import { setUser } from "../state/globalsSlice";
+import { FaPesoSign } from "react-icons/fa6";
 
 const Layout = () => {
   const location = useLocation();
@@ -58,6 +60,10 @@ const Layout = () => {
         return "Transactions"; // New case added
       case "/admin/settings":
         return "Settings";
+      case "/admin/reported-users":
+        return "Reported Users";
+      case "/admin/update-gcash":
+        return "GCash Account";
       default:
         return "Dashboard";
     }
@@ -80,14 +86,14 @@ const Layout = () => {
           >
             <FaTachometerAlt /> <span>Dashboard</span>
           </Link>
-          <Link
+          {/* <Link
             to="/admin/services"
             className={`nav-item ${
               location.pathname === "/admin/services" ? "active" : ""
             }`}
           >
             <FaTools /> <span>Services</span>
-          </Link>
+          </Link> */}
           {/* <Link
             to="/admin/reports"
             className={`nav-item ${
@@ -126,7 +132,23 @@ const Layout = () => {
               location.pathname === "/admin/transactions" ? "active" : ""
             }`}
           >
-            <FaMoneyBillWave /> <span>Transactions</span> {/* New link added */}
+            <FaMoneyBillWave /> <span>Transactions</span>
+          </Link>
+          <Link
+            to="/admin/reported-users"
+            className={`nav-item ${
+              location.pathname === "/admin/reported-users" ? "active" : ""
+            }`}
+          >
+            <FaFlag /> <span>Reported Users</span>
+          </Link>
+          <Link
+            to="/admin/update-gcash"
+            className={`nav-item ${
+              location.pathname === "/admin/update-gcash" ? "active" : ""
+            }`}
+          >
+            <FaPesoSign /> <span>Update GCash</span>
           </Link>
           <Link
             to="/admin/settings"

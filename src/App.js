@@ -18,6 +18,8 @@ import Messages from "./pages/Messages";
 import Transactions from "./pages/Transactions";
 import "./App.css";
 import { useSelector } from "react-redux";
+import ReportedUsers from "./pages/ReportedUsers";
+import UpdateGCash from "./pages/UpdateGCash";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +51,8 @@ function App() {
         <Route path="messages" element={<Messages />} />
         <Route path="settings" element={<Settings />} />
         <Route path="transactions" element={<Transactions />} />
+        <Route path="reported-users" element={<ReportedUsers />} />
+        <Route path="update-gcash" element={<UpdateGCash />} />
       </Route>
 
       {/* Default Routes */}

@@ -3,13 +3,18 @@ import "../css/Transactions.css"; // Ensure this CSS file is created
 import { all, loadingProcess } from "../firebase/helper";
 import { saveAs } from "file-saver";
 import Papa from "papaparse";
-import { data } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
+
+const DATA_PER_PAGE = 10;
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [allData, setAllData] = useState([]);
   const [pages, setPages] = useState([1]);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All"); // Added state for status filter
 
   useEffect(() => {
     loadingProcess(async () => {
@@ -26,24 +31,42 @@ const Transactions = () => {
         };
       });
       setAllData(data);
-      if (data.length < 11) {
-        setTransactions(data);
-        return;
-      }
+      setFilteredData(data);
+      if (data.length <= DATA_PER_PAGE) return;
 
-      let size =  parseInt(data.length / 10)
-      if (data.length % 10 != 0)
-        size++
-      let t = [1];
-      setTransactions(data.slice(0, 10));
-      for (let i = 2; i <= size; i++) t.push(i);
-      setPages(t);
+      setPagesNumbers(data.length);
     });
   }, []);
 
   useEffect(() => {
-    setTransactions(allData.slice(10 * (page - 1), 10 * page));
-  }, [page]);
+    setTransactions(
+      filteredData.slice(DATA_PER_PAGE * (page - 1), DATA_PER_PAGE * page)
+    );
+  }, [page, filteredData]);
+
+  useEffect(() => {
+    let filtered = allData;
+    const search = searchTerm.trim();
+    if (search != "")
+      filtered = filtered.filter(
+        (item) =>
+          item.providerName.toLowerCase().includes(search) ||
+          item.customerName.toLowerCase().includes(search)
+      );
+    if (statusFilter != "All")
+      filtered = filtered.filter((item) => item.status == statusFilter);
+    setFilteredData(filtered);
+    setPage(1);
+    setPagesNumbers(filtered.length);
+  }, [statusFilter, searchTerm]);
+
+  const setPagesNumbers = (dataLength) => {
+    let size = parseInt(dataLength / DATA_PER_PAGE);
+    if (dataLength % DATA_PER_PAGE != 0) size++;
+    let t = [1];
+    for (let i = 2; i <= size; i++) t.push(i);
+    setPages(t);
+  };
 
   const onDownloadAsCSV = () => {
     if (transactions.length == 0) {
@@ -78,6 +101,41 @@ const Transactions = () => {
           Download as CSV
         </button>
       </header>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div className="search-bar">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search transactions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+
+        <div className="filter-container">
+          <label htmlFor="status-filter" className="filter-label">
+            Filter by Status:
+          </label>
+          <select
+            id="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="status-filter"
+          >
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Declined">Declined</option>
+            <option value="On Process">On Process</option>
+            <option value="Waiting for Confirmation">
+              Waiting for Confirmation
+            </option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
       <table className="transactions-table">
         <thead>
           <tr>
@@ -109,7 +167,7 @@ const Transactions = () => {
           disabled={page == 1}
           className="pagination-btn"
           style={page == 1 ? { backgroundColor: "gray" } : {}}
-          onClick={() => setPage(prev => prev - 1)}
+          onClick={() => setPage((prev) => prev - 1)}
         >
           Previous
         </button>
@@ -126,7 +184,7 @@ const Transactions = () => {
           disabled={page == pages.length}
           className="pagination-btn"
           style={page == pages.length ? { backgroundColor: "gray" } : {}}
-          onClick={() => setPage(prev => prev + 1)}
+          onClick={() => setPage((prev) => prev + 1)}
         >
           Next
         </button>

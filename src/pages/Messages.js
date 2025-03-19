@@ -23,8 +23,12 @@ import { useDispatch, useSelector } from "react-redux";
 import Spinner from "../components/Spinner";
 import { setSpecificLoading } from "../state/globalsSlice";
 import { uploadImage } from "../helpers/cloudinary";
+import { useLocation } from "react-router-dom";
 
 const Messages = () => {
+  const q = new URLSearchParams(useLocation().search);
+  const userId = q.get("userId");
+
   const [selectedChat, setSelectedChat] = useState(null);
   const selectedId = useRef(null);
   const [message, setMessage] = useState("");
@@ -56,6 +60,8 @@ const Messages = () => {
     let users = {};
     let unsubsChat = null;
     let unsubsActive = null;
+
+    let loaded = false;
 
     const q = query(
       collection(db, "users"),
@@ -129,8 +135,11 @@ const Messages = () => {
           temp[dc.id] = { ...userData, chats: chatData.chats };
         });
 
+        if (!loaded && userId) setSelectedChat(temp[userId]);
+
         setSupportChats(temp);
         refresh(temp);
+        loaded = true;
       });
     });
 
