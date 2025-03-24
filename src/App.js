@@ -20,6 +20,7 @@ import "./App.css";
 import { useSelector } from "react-redux";
 import ReportedUsers from "./pages/ReportedUsers";
 import UpdateGCash from "./pages/UpdateGCash";
+import BillHistory from "./pages/BillHistory";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -53,6 +54,7 @@ function App() {
         <Route path="transactions" element={<Transactions />} />
         <Route path="reported-users" element={<ReportedUsers />} />
         <Route path="update-gcash" element={<UpdateGCash />} />
+        <Route path="bill-history" element={<BillHistory />} />
       </Route>
 
       {/* Default Routes */}
