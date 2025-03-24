@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../css/EarningShares.css";
-import { all } from "../firebase/helper";
-import { timestampToStringConverter } from "../helpers/TimestampToStringConverter";
+import { all, update } from "../firebase/helper";
+import { timestampToDateStringConverter } from "../helpers/TimestampToStringConverter";
 
 const Earnings = () => {
   const [earningsStats, setEarningsStats] = useState({
@@ -13,34 +13,37 @@ const Earnings = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  useEffect(() => {
-    const fetchEarningsData = async () => {
-      try {
-        const snap = await all("bookings");
-        let temp = [];
-        let e = 0;
-        for (const doc of snap.docs) {
-          const data = doc.data();
-          if (!data.commissionReference) continue;
+  const fetchEarningsData = async () => {
+    try {
+      const snap = await all("bookings");
+      let temp = [];
+      let e = 0;
+      for (const doc of snap.docs) {
+        const data = doc.data();
+        if (!data.commissionReference) continue;
 
-          e += parseInt(data.price);
-          temp.push({
-            date: data.date,
-            user: data.providerName,
-            refNumber: data.commissionReference,
-            amount: data.price,
-            status: data.status,
-          });
-        }
-
-        setEarningsStats({ totalEarned: e });
-        setTransactions(temp);
-        setFilteredTransactions(temp);
-      } catch (error) {
-        console.error("Error fetching earnings data:", error);
+        const price = parseInt(data.price);
+        const commission = parseInt(price * 0.15);
+        e += commission;
+        temp.push({
+          id: doc.id,
+          date: timestampToDateStringConverter(data.paidCommissionAt),
+          user: data.providerName,
+          refNumber: data.commissionReference,
+          amount: commission,
+          status: data.commissionStatus,
+        });
       }
-    };
 
+      setEarningsStats({ totalEarned: e });
+      setTransactions(temp);
+      setFilteredTransactions(temp);
+    } catch (error) {
+      console.error("Error fetching earnings data:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchEarningsData();
   }, []);
 
@@ -63,12 +66,27 @@ const Earnings = () => {
     setSelectedTransaction(null);
   };
 
+  const viewAll = () => [setSearchQuery("")];
+
   const downloadReceipt = () => {
     alert(
       `Downloading receipt for ${
         selectedTransaction.user
       } - ₱${selectedTransaction.amount.toFixed(2)}`
     );
+  };
+
+  const handleMarkAsPaid = async (id) => {
+    try {
+      await update("bookings", id, {
+        commissionStatus: "Completed",
+      });
+      await fetchEarningsData();
+
+      alert("Successfully marked as paid.");
+    } catch (e) {
+      alert("Error marking as read!!!");
+    }
   };
 
   return (
@@ -127,8 +145,24 @@ const Earnings = () => {
                     </span>
                   </td>
                   <td>
+                    <div style={{ display: "flex" }}></div>
+                    {transaction.status == "Completed" ? null : (
+                      <button
+                        className="btn outline-btn"
+                        style={{
+                          paddingTop: 5,
+                          paddingBottom: 5,
+                          borderColor: "green",
+                          color: "green",
+                        }}
+                        onClick={() => handleMarkAsPaid(transaction.id)}
+                      >
+                        Mark as Paid
+                      </button>
+                    )}
                     <button
                       className="btn outline-btn"
+                      style={{ paddingTop: 5, paddingBottom: 5, marginTop: 5 }}
                       onClick={() => handleViewDetails(transaction)}
                     >
                       View Details
@@ -140,7 +174,9 @@ const Earnings = () => {
           </table>
         </div>
         <div className="center-content">
-          <button className="btn primary-btn">View All Transactions</button>
+          <button onClick={viewAll} className="btn primary-btn">
+            View All Transactions
+          </button>
         </div>
       </div>
 
