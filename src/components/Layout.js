@@ -10,7 +10,8 @@ import {
   FaUsers,
   FaComments,
   FaMoneyBillWave,
-  FaFlag, // Added for Transactions
+  FaFlag,
+  FaShareAlt, // Added for Transactions
 } from "react-icons/fa";
 import "../css/Layout.css";
 import { loadingProcess, serverTimestamp, update } from "../firebase/helper";
@@ -149,6 +150,14 @@ const Layout = () => {
             }`}
           >
             <FaPesoSign /> <span>Update GCash</span>
+          </Link>
+          <Link
+            to="/admin/bill-history"
+            className={`nav-item ${
+              location.pathname === "/admin/bill-history" ? "active" : ""
+            }`}
+          >
+            <FaShareAlt /> <span>Bills History</span>
           </Link>
           <Link
             to="/admin/settings"
