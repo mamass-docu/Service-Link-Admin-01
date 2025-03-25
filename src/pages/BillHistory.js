@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import "../css/EarningShares.css";
 import { all, update } from "../firebase/helper";
 import { timestampToDateStringConverter } from "../helpers/TimestampToStringConverter";
+import { Link } from "react-router-dom";
 
 const Earnings = () => {
   const [earningsStats, setEarningsStats] = useState({
     totalEarned: 0,
   });
+  const [references, setReferences] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,8 +18,10 @@ const Earnings = () => {
   const fetchEarningsData = async () => {
     try {
       const snap = await all("bookings");
+      let t = {};
       let temp = [];
       let e = 0;
+
       for (const doc of snap.docs) {
         const data = doc.data();
         if (!data.commissionReference) continue;
@@ -25,16 +29,45 @@ const Earnings = () => {
         const price = parseInt(data.price);
         const commission = parseInt(price * 0.15);
         e += commission;
-        temp.push({
-          id: doc.id,
+
+        const currentData = t[data.commissionReference];
+        if (currentData) {
+          t[data.commissionReference].amount += commission;
+          t[data.commissionReference].ids.push(doc.id);
+          continue;
+        }
+        t[data.commissionReference] = {
+          ids: [doc.id],
           date: timestampToDateStringConverter(data.paidCommissionAt),
           user: data.providerName,
           refNumber: data.commissionReference,
           amount: commission,
           status: data.commissionStatus,
-        });
+        };
       }
 
+      for (const reference in t) {
+        temp.push(t[reference]);
+      }
+
+      // for (const doc of snap.docs) {
+      //   const data = doc.data();
+      //   if (!data.commissionReference) continue;
+
+      //   const price = parseInt(data.price);
+      //   const commission = parseInt(price * 0.15);
+      //   e += commission;
+      //   temp.push({
+      //     id: doc.id,
+      //     date: timestampToDateStringConverter(data.paidCommissionAt),
+      //     user: data.providerName,
+      //     refNumber: data.commissionReference,
+      //     amount: commission,
+      //     status: data.commissionStatus,
+      //   });
+      // }
+
+      setReferences(t);
       setEarningsStats({ totalEarned: e });
       setTransactions(temp);
       setFilteredTransactions(temp);
@@ -49,9 +82,17 @@ const Earnings = () => {
 
   useEffect(() => {
     // Filter transactions based on search query
+    const search = searchQuery.trim().toLowerCase();
+    if (search == "") {
+      setFilteredTransactions(transactions);
+      return;
+    }
+
     setFilteredTransactions(
-      transactions.filter((transaction) =>
-        transaction.user.toLowerCase().includes(searchQuery.toLowerCase())
+      transactions.filter(
+        (transaction) =>
+          transaction.user.toLowerCase().includes(search) ||
+          transaction.refNumber.toLowerCase().includes(search)
       )
     );
   }, [searchQuery, transactions]);
@@ -68,21 +109,17 @@ const Earnings = () => {
 
   const viewAll = () => [setSearchQuery("")];
 
-  const downloadReceipt = () => {
-    alert(
-      `Downloading receipt for ${
-        selectedTransaction.user
-      } - ₱${selectedTransaction.amount.toFixed(2)}`
-    );
-  };
+  const handleMarkAsPaid = async (reference) => {
+    const data = references[reference];
+    if (!data) return;
 
-  const handleMarkAsPaid = async (id) => {
     try {
-      await update("bookings", id, {
-        commissionStatus: "Completed",
-      });
+      for (const i in data.ids) {
+        await update("bookings", data.ids[i], {
+          commissionStatus: "Completed",
+        });
+      }
       await fetchEarningsData();
-
       alert("Successfully marked as paid.");
     } catch (e) {
       alert("Error marking as read!!!");
@@ -155,18 +192,32 @@ const Earnings = () => {
                           borderColor: "green",
                           color: "green",
                         }}
-                        onClick={() => handleMarkAsPaid(transaction.id)}
+                        onClick={() => handleMarkAsPaid(transaction.refNumber)}
                       >
                         Mark as Paid
                       </button>
                     )}
-                    <button
+
+                    <Link
+                      to={`/admin/transaction-details/${transaction.refNumber}`}
+                      className="btn outline-btn"
+                      style={{
+                        textDecoration: "none",
+                        paddingTop: 5,
+                        display: "flex",
+                        paddingBottom: 5,
+                        marginTop: 5,
+                      }}
+                    >
+                      View Details
+                    </Link>
+                    {/* <button
                       className="btn outline-btn"
                       style={{ paddingTop: 5, paddingBottom: 5, marginTop: 5 }}
                       onClick={() => handleViewDetails(transaction)}
                     >
                       View Details
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))}

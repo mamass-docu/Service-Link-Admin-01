@@ -66,7 +66,7 @@ const Layout = () => {
       case "/admin/update-gcash":
         return "GCash Account";
       default:
-        return "Dashboard";
+        return "Transaction Details";
     }
   };
 
